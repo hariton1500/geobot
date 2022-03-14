@@ -8,5 +8,5 @@ Future<void> main(List<String> arguments) async {
   Telega telega = Telega(tkn: tkn);
   Handle handle = Handle();
 
-  Timer.periodic(Duration(seconds: 60), (timer) => handle.getUpdates(telega: telega));
+  Timer.periodic(Duration(seconds: 10), (timer) => handle.getUpdates(telega: telega));
 }

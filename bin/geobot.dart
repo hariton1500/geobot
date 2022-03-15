@@ -3,7 +3,7 @@ import 'dart:async';
 import 'helper.dart';
 
 Future<void> main(List<String> arguments) async {
-  String tkn = '5126470721:AAGSXjtS16F8UowAG8IwuIeJxDyzLzdhHXw';
+  String tkn = arguments[0].toString();
 
   Telega telega = Telega(tkn: tkn);
   Handle handle = Handle();

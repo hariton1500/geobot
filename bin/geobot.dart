@@ -7,6 +7,10 @@ Future<void> main(List<String> arguments) async {
 
   Telega telega = Telega(tkn: tkn);
   Handle handle = Handle();
+  Checks checks = Checks();
 
-  Timer.periodic(Duration(seconds: 10), (timer) => handle.getUpdates(telega: telega));
+  Timer.periodic(Duration(seconds: 2), (timer) => handle.getUpdates(telega: telega));
+  
+  Timer(Duration(seconds: 10), () => checks.geoNotify(telega: telega));
+  Timer.periodic(Duration(minutes: 30), (timer) => checks.geoNotify(telega: telega));
 }

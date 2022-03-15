@@ -3,6 +3,30 @@ import 'package:http/http.dart' as http;
 
 import 'db.dart';
 
+class Checks {
+  //[date, fromId, coords]
+  void geoNotify({required Telega telega}) {
+    print('Notify checks...');
+    int todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30).millisecondsSinceEpoch - Duration.millisecondsPerDay;
+    DateTime todayEnd = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 16, 30);
+    //int now = DateTime.now().millisecondsSinceEpoch;
+    if (DateTime.now().isBefore(todayEnd)) {
+      for (var brig in brigs) {
+        print('Brigada $brig:');
+        for (var id in idsByBrig[brig]!) {
+          print('$id(${nameById[id]}):');
+          List<dynamic> result = telega.db!.where((row) => (row[0] >= todayStart && id == row[1])).toList();
+          print(result);
+          if (result.isEmpty) {
+            telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!!', chatId: groupIdByBrig[brig]!);
+          }
+        }
+      }
+    } else {
+      print('Out of work time.');
+    }
+  }
+}
 class Handle {
   Future<void> getUpdates({required Telega telega}) async {
     var res = await telega.getUpdate();
@@ -37,6 +61,7 @@ class Handle {
   }
 
   void parse(dynamic mess, Telega telega) {
+    print('start parsing');
     if (mess is Map && mess.containsKey('location')) {
       List<double> coords = [mess['location']['latitude'], mess['location']['longitude']];
       int fromId = mess['from']['id'];
@@ -57,6 +82,12 @@ class Handle {
         if (command.length > 2) {day = command[2];}
         show(brig, day, telega);
       }
+      if (mess['text'].toString().startsWith('db list')) {
+        print('data base:');
+        for (var row in telega.db!) {
+          print(row);
+        }
+      }
     }
   }
 
@@ -67,7 +98,7 @@ class Handle {
     int todayMorningUnix = todayMorningDT.millisecondsSinceEpoch;
     int startMoment = todayMorningUnix - Duration.millisecondsPerDay;
     if (brig > 0) {
-      var result = telega.db!.where((value) => (value[0] >= startMoment && IdsByBrig[brig]!.contains(value[1])));
+      var result = telega.db!.where((value) => (value[0] >= startMoment && idsByBrig[brig]!.contains(value[1])));
       print('results:');
       print(result);
     }
@@ -94,6 +125,15 @@ class Telega {
     try {
       var resp = await http.get(Uri.parse(_url));
       return jsonDecode(resp.body);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> sendMessage({required String text, required int chatId}) async {
+    String _url = url! + 'sendMessage?chat_id=$chatId&text=$text';
+    try {
+      http.get(Uri.parse(_url));
     } catch (e) {
       print(e);
     }

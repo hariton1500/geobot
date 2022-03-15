@@ -84,7 +84,7 @@ class Handle {
           int brig = 0, day = 0;
           if (command.length >= 2) {brig = int.parse(command[1]);}
           if (command.length >= 3) {day = int.parse(command[2]);}
-          show(brig, day, telega);
+          show(brig, day, telega, mess['from']['id']);
           
         } catch (e) {
           print(e);
@@ -99,7 +99,7 @@ class Handle {
     }
   }
 
-  void show(int brig, int day, Telega telega) {
+  void show(int brig, int day, Telega telega, int from) {
     day = day.abs();
     //get unix time today 8:30
     DateTime todayMorningDT = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30);
@@ -111,6 +111,29 @@ class Handle {
       var result = telega.db!.where((raw) => (raw[0] * 1000 >= startMoment && idsByBrig[brig]!.contains(raw[1])));
       print('results:');
       print(result);
+      String out = '';
+      for (var id in idsByBrig[brig]!) {
+        out = 'https://static-maps.yandex.ru/1.x/?l=map&pt=';
+        print('$id[${nameById[id]}]:');
+        List coords = result.where((row) => row[1] == id).map((e) => e[2]).toList();
+        print(coords);
+        for (var coord in coords) {
+          out += '${coord[0]},${coord[1]},${coords.indexOf(coord) + 1}';
+          if (coord != coords.last) {
+            out += '~';
+          }
+        }
+        //print(_url);
+        out += '&pl=';
+        for (var coord in coords) {
+          out += '${coord[0]},${coord[1]}';
+          if (coord != coords.last) {
+            out += ',';
+          }
+        }
+        telega.sendMessage(text: '[${nameById[id]}]($out)', chatId: from);
+        print(out);
+      }
     }
   }
 }
@@ -150,7 +173,7 @@ class Telega {
   }
 
   Future<void> sendMessage({required String text, required int chatId}) async {
-    String _url = url! + 'sendMessage?chat_id=$chatId&text=$text';
+    String _url = url! + 'sendMessage?chat_id=$chatId&text=$text&parse_mode=markdown';
     try {
       http.get(Uri.parse(_url));
     } catch (e) {

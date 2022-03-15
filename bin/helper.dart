@@ -113,20 +113,20 @@ class Handle {
       print(result);
       String out = '';
       for (var id in idsByBrig[brig]!) {
-        out = 'https://static-maps.yandex.ru/1.x/?l=map&pt=';
+        out = 'https://static-maps.yandex.ru/1.x/?l=map%26pt=';
         print('$id[${nameById[id]}]:');
         List coords = result.where((row) => row[1] == id).map((e) => e[2]).toList();
         print(coords);
         for (var coord in coords) {
-          out += '${coord[0]},${coord[1]},${coords.indexOf(coord) + 1}';
+          out += '${coord[1]},${coord[0]},${coords.indexOf(coord) + 1}';
           if (coord != coords.last) {
             out += '~';
           }
         }
         //print(_url);
-        out += '&pl=';
+        out += '%26pl=';
         for (var coord in coords) {
-          out += '${coord[0]},${coord[1]}';
+          out += '${coord[1]},${coord[0]}';
           if (coord != coords.last) {
             out += ',';
           }

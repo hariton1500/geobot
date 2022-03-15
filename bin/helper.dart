@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import 'db.dart';
@@ -15,7 +16,7 @@ class Checks {
         print('Brigada $brig:');
         for (var id in idsByBrig[brig]!) {
           print('$id(${nameById[id]}):');
-          List<dynamic> result = telega.db!.where((row) => (row[0] >= todayStart && id == row[1])).toList();
+          List<dynamic> result = telega.db!.where((row) => (row[0] * 1000 >= todayStart && id == row[1])).toList();
           print(result);
           if (result.isEmpty) {
             telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!!', chatId: groupIdByBrig[brig]!);
@@ -33,7 +34,7 @@ class Handle {
     if (res is Map) {
       if (res['ok']) {
         List<dynamic> messages = res['result'];
-        print('=====================getUpdates========[${DateTime.now()}]============');
+        //print('=====================getUpdates========[${DateTime.now()}]============');
         for (var message in messages) {
           //print(message);
           if (telega.updateId! < message['update_id']) {
@@ -73,14 +74,22 @@ class Handle {
         date = mess['edit_date'];
       }
       telega.db!.add([date, fromId, coords]);
+      File file = File('db.txt');
+      file.openWrite(mode: FileMode.append);
+      file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}');
     }
     if (mess is Map && mess.containsKey('text')) {
       if (mess['text'].toString().startsWith('show')) {
-        List command = mess['text'].toString().split(' ');
-        int brig = 0, day = 0;
-        if (command.length > 1) {brig = command[1];}
-        if (command.length > 2) {day = command[2];}
-        show(brig, day, telega);
+        try {
+          List command = mess['text'].toString().split(' ');
+          int brig = 0, day = 0;
+          if (command.length >= 2) {brig = int.parse(command[1]);}
+          if (command.length >= 3) {day = int.parse(command[2]);}
+          show(brig, day, telega);
+          
+        } catch (e) {
+          print(e);
+        }
       }
       if (mess['text'].toString().startsWith('db list')) {
         print('data base:');
@@ -96,9 +105,11 @@ class Handle {
     //get unix time today 8:30
     DateTime todayMorningDT = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30);
     int todayMorningUnix = todayMorningDT.millisecondsSinceEpoch;
-    int startMoment = todayMorningUnix - Duration.millisecondsPerDay;
+    int startMoment = todayMorningUnix - Duration.millisecondsPerDay * day;
+    print(startMoment);
+    print(DateTime.fromMillisecondsSinceEpoch(startMoment));
     if (brig > 0) {
-      var result = telega.db!.where((value) => (value[0] >= startMoment && idsByBrig[brig]!.contains(value[1])));
+      var result = telega.db!.where((raw) => (raw[0] * 1000 >= startMoment && idsByBrig[brig]!.contains(raw[1])));
       print('results:');
       print(result);
     }
@@ -116,6 +127,15 @@ class Telega {
     url = 'https://api.telegram.org/bot$tkn/';
     updateId = 0;
     db = [];
+    File file = File('db.txt');
+    if (!file.existsSync()) {
+      file.createSync();
+    }
+    file.openRead();
+    for (var line in file.readAsLinesSync()) {
+      List<String> separated = line.split(' ');
+      db!.add([int.parse(separated[0]), int.parse(separated[1]), [double.parse(separated[2]), double.parse(separated[3])]]);      
+    }
   }
   Future<dynamic> getUpdate() async {
     String _url = url! + 'getUpdates';

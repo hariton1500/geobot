@@ -6,5 +6,6 @@ void main(List<String> args) {
   int todayMorningUnix = todayMorningDT.millisecondsSinceEpoch;
   print(todayMorningUnix);
   print(Duration.millisecondsPerDay);
-
+  print(DateTime.fromMillisecondsSinceEpoch(1647350804000));
+  print(DateTime.now().millisecondsSinceEpoch);
 }

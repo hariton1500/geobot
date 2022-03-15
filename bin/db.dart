@@ -21,15 +21,12 @@ var users = {
     'opium': {},
     'rumit': {}
   },
-  6: {
-    'magistik': {
-      'id': 1370022113,
-      'name': 'Михаил'
-    },
-    'vlad': {
-      'id': 1735747797,
-      'name': 'VladislaV'
-    }
-  }
+  6: [['magistik', 1370022113, 'Михаил'],
+      ['vlad', 1735747797, 'VladislaV']
+  ]
+  
+};
+var IdsByBrig = {
+  6: [1370022113, 1735747797]
 };
 

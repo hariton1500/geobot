@@ -75,8 +75,7 @@ class Handle {
       }
       telega.db!.add([date, fromId, coords]);
       File file = File('db.txt');
-      file.openWrite(mode: FileMode.append);
-      file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}');
+      file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);
     }
     if (mess is Map && mess.containsKey('text')) {
       if (mess['text'].toString().startsWith('show')) {

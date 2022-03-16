@@ -118,7 +118,7 @@ class Handle {
         List coords = result.where((row) => row[1] == id).map((e) => e[2]).toList();
         print(coords);
         for (var coord in coords) {
-          out += '${coord[0]},${coord[1]},${coords.indexOf(coord) + 1}';
+          out += '${coord[1]},${coord[0]},${coords.indexOf(coord) + 1}';
           if (coord != coords.last) {
             out += '~';
           }
@@ -126,7 +126,7 @@ class Handle {
         //print(_url);
         out += '&pl=';
         for (var coord in coords) {
-          out += '${coord[0]},${coord[1]}';
+          out += '${coord[1]},${coord[0]}';
           if (coord != coords.last) {
             out += ',';
           }

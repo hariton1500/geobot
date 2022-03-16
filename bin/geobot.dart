@@ -1,9 +1,13 @@
 import 'dart:async';
-
+import 'dart:io';
 import 'helper.dart';
 
 Future<void> main(List<String> arguments) async {
-  String tkn = arguments[0].toString();
+  String tkn;// = arguments[0].toString();
+  File tknFile = File('tkn.txt');
+  //tknFile.openRead();
+  tkn = tknFile.readAsStringSync();
+  print(tkn);
 
   Telega telega = Telega(tkn: tkn);
   Handle handle = Handle();

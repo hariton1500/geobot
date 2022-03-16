@@ -11,7 +11,7 @@ class Checks {
     int todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30).millisecondsSinceEpoch - Duration.millisecondsPerDay;
     DateTime todayEnd = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 16, 30);
     //int now = DateTime.now().millisecondsSinceEpoch;
-    if (DateTime.now().isBefore(todayEnd)) {
+    if (DateTime.now().isBefore(todayEnd) && DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(todayStart))) {
       for (var brig in brigs) {
         print('Brigada $brig:');
         for (var id in idsByBrig[brig]!) {
@@ -19,7 +19,8 @@ class Checks {
           List<dynamic> result = telega.db!.where((row) => (row[0] * 1000 >= todayStart && id == row[1])).toList();
           print(result);
           if (result.isEmpty) {
-            telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!!', chatId: groupIdByBrig[brig]!);
+            //telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!!', chatId: groupIdByBrig[brig]!);
+            print('${nameById[id]}, включи геолокацию!!!');
           }
         }
       }
@@ -29,6 +30,7 @@ class Checks {
   }
 }
 class Handle {
+
   Future<void> getUpdates({required Telega telega}) async {
     var res = await telega.getUpdate();
     if (res is Map) {
@@ -108,15 +110,27 @@ class Handle {
     print(startMoment);
     print(DateTime.fromMillisecondsSinceEpoch(startMoment));
     if (brig > 0) {
-      var result = telega.db!.where((raw) => (raw[0] * 1000 >= startMoment && idsByBrig[brig]!.contains(raw[1])));
+      //var result = telega.db!.where((raw) => (raw[0] * 1000 >= startMoment && idsByBrig[brig]!.contains(raw[1])));
       print('results:');
-      print(result);
+      //print(result);
       String out = '';
       for (var id in idsByBrig[brig]!) {
-        out = 'https://static-maps.yandex.ru/1.x/?l=map%26pt=';
         print('$id[${nameById[id]}]:');
-        List coords = result.where((row) => row[1] == id).map((e) => e[2]).toList();
-        print(coords);
+        List oneIdAndTimeFiltered = telega.db!.where((row) => (row[1] == id && row[0] * 1000 >= startMoment && row[0] * 1000 <= startMoment + Duration.millisecondsPerDay)).toList();
+        print('for $id filtered ${oneIdAndTimeFiltered.length} rows');
+        List _db = [];
+        int tmp = oneIdAndTimeFiltered[0][0];
+        _db.add(oneIdAndTimeFiltered[0]);
+        for (var i = 1; i < oneIdAndTimeFiltered.length; i++) {
+          List _row = oneIdAndTimeFiltered[i];
+          if ((_row[0] * 1000 - tmp * 1000) > Duration.millisecondsPerMinute * 30) {
+            _db.add(_row);
+            tmp = _row[0];
+          }
+        }
+        out = 'https://static-maps.yandex.ru/1.x/?l=map%26pt=';
+        List coords = _db.where((row) => row[1] == id).map((e) => e[2]).toList();
+        //print(coords.length);
         for (var coord in coords) {
           out += '${coord[1]},${coord[0]},${coords.indexOf(coord) + 1}';
           if (coord != coords.last) {
@@ -131,7 +145,7 @@ class Handle {
             out += ',';
           }
         }
-        telega.sendMessage(text: '[${nameById[id]}]($out)', chatId: from);
+        //telega.sendMessage(text: '[${nameById[id]}]($out)', chatId: from);
         print(out);
       }
     }
@@ -153,11 +167,17 @@ class Telega {
     if (!file.existsSync()) {
       file.createSync();
     }
-    file.openRead();
+    //file.openRead();
+    int count = 0;
     for (var line in file.readAsLinesSync()) {
       List<String> separated = line.split(' ');
-      db!.add([int.parse(separated[0]), int.parse(separated[1]), [double.parse(separated[2]), double.parse(separated[3])]]);      
+      db!.add([int.parse(separated[0]), int.parse(separated[1]), [double.parse(separated[2]), double.parse(separated[3])]]);
+      count++;
     }
+    print('read $count rows from DB file');
+    print('checking bot API...');
+    var res = http.get(Uri.parse('$url/getMe'));
+    res.then((value) => print(value.body));
   }
   Future<dynamic> getUpdate() async {
     String _url = url! + 'getUpdates';

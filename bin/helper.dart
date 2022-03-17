@@ -7,7 +7,7 @@ import 'db.dart';
 class Checks {
   //[date, fromId, coords]
   void geoNotify({required Telega telega}) {
-    print('Notify checks...');
+    print('Notify checks...[${DateTime.now()}]');
     int todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30).millisecondsSinceEpoch - Duration.millisecondsPerDay;
     DateTime todayEnd = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 16, 30);
     //int now = DateTime.now().millisecondsSinceEpoch;
@@ -76,9 +76,15 @@ class Handle {
       if (mess.containsKey('edit_date')) {
         date = mess['edit_date'];
       }
-      telega.db!.add([date, fromId, coords]);
-      File file = File('db.txt');
-      file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);
+      if (date! * 1000 - telega.lastTimeSavedData![fromId]! * 1000 >= Duration.millisecondsPerMinute * 15) {
+        telega.db!.add([date, fromId, coords]);
+        File file = File('db.txt');
+        file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);
+        telega.lastTimeSavedData![fromId] = date;
+        print('saved to db');
+      } else {
+        print((date * 1000 - telega.lastTimeSavedData![fromId]! * 1000) / 1000 / 60);
+      }
     }
     if (mess is Map && mess.containsKey('text')) {
       if (mess['text'].toString().startsWith('show')) {

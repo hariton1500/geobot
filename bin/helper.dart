@@ -116,7 +116,7 @@ class Handle {
     int startMoment = todayMorningUnix - Duration.millisecondsPerDay * day;
     print(startMoment);
     print(DateTime.fromMillisecondsSinceEpoch(startMoment));
-    if (brig > 0) {
+    if (brig > 0 && idsByBrig.containsKey(brig)) {
       //var result = telega.db!.where((raw) => (raw[0] * 1000 >= startMoment && idsByBrig[brig]!.contains(raw[1])));
       print('results:');
       //print(result);
@@ -131,7 +131,7 @@ class Handle {
           _db.add(oneIdAndTimeFiltered[0]);
           for (var i = 1; i < oneIdAndTimeFiltered.length; i++) {
             List _row = oneIdAndTimeFiltered[i];
-            if ((_row[0] * 1000 - tmp * 1000) > Duration.millisecondsPerMinute * 30) {
+            if ((_row[0] * 1000 - tmp * 1000) > Duration.millisecondsPerMinute * 10) {
               _db.add(_row);
               tmp = _row[0];
             }
@@ -139,11 +139,11 @@ class Handle {
           print('and rows with 30 min interval is ${_db.length}');
           String data = '';
           for (var row in _db) {
-            data += '${row[0].toString()},${row[2][1].toString()},${row[2][0].toString()};'; 
+            data += '${row[0].toString()},${row[2][0].toString()},${row[2][1].toString()};'; 
           }
           data = data.substring(0,data.length - 1);
           print(data);
-          var res = await http.post(Uri.parse('http://evpanet.lebedinets.ru/geobot/gen.php'), body: data);
+          var res = await http.post(Uri.parse('http://evpanet.lebedinets.ru/geobot/gen.php'), body: {'data': data});
           print(res.body);
           /*
           out = 'https://static-maps.yandex.ru/1.x/?l=map%26pt=';
@@ -163,9 +163,16 @@ class Handle {
               out += ',';
             }
           }
-          //telega.sendMessage(text: '[${nameById[id]}]($out)', chatId: from);
-          print(out);
           */
+          try {
+            var answer = jsonDecode(res.body);
+            telega.sendMessage(text: '[${nameById[id]}](${answer['map']['url']})', chatId: from);
+            //telega.sendMessage(text: answer['map']['url'], chatId: from);
+          } catch (e) {
+            print(e);
+          }
+          
+          //print(out);
         }
       }
     }

@@ -16,9 +16,10 @@ class Checks {
         print('Brigada $brig:');
         for (var id in idsByBrig[brig]!) {
           print('$id(${nameById[id]}):');
-          List<dynamic> result = telega.db!.where((row) => (row[0] * 1000 >= todayStart && id == row[1])).toList();
-          print(result);
-          if (result.isEmpty) {
+          //List<dynamic> result = telega.db!.where((row) => (row[0] * 1000 >= todayStart && id == row[1])).toList();
+          //print(result);
+          if ((DateTime.now().millisecondsSinceEpoch - telega.lastTimeSavedData![id]! * 1000) >= Duration.millisecondsPerMinute * 30) {
+            print('${nameById[id]} is not posting geo data longer then 30 min');
             //telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!!', chatId: groupIdByBrig[brig]!);
             print('${nameById[id]}, включи геолокацию!!!');
           }
@@ -40,7 +41,7 @@ class Handle {
         for (var message in messages) {
           //print(message);
           if (telega.updateId! < message['update_id']) {
-            print('--------------------New message or edited message----------------------');
+            print('--------------------New message or edited message----[${DateTime.now()}]------------------');
             print('update_id = ${message['update_id']}');
             telega.updateId = message['update_id'];
             dynamic mess;
@@ -158,11 +159,13 @@ class Telega {
   int? chatId;
   String? text;
   List<List>? db;
+  Map<int, int>? lastTimeSavedData;
 
   Telega({required String tkn}) {
     url = 'https://api.telegram.org/bot$tkn/';
     updateId = 0;
     db = [];
+    lastTimeSavedData = {};
     File file = File('db.txt');
     if (!file.existsSync()) {
       file.createSync();
@@ -172,9 +175,14 @@ class Telega {
     for (var line in file.readAsLinesSync()) {
       List<String> separated = line.split(' ');
       db!.add([int.parse(separated[0]), int.parse(separated[1]), [double.parse(separated[2]), double.parse(separated[3])]]);
+      lastTimeSavedData![db!.last[1]] = db!.last[0];
       count++;
     }
     print('read $count rows from DB file');
+    print('Last saved data:');
+    for (var id in nameById.keys) {
+      print('[$id] ${nameById[id]}: ${DateTime.fromMillisecondsSinceEpoch(lastTimeSavedData![id]! * 1000)}');
+    }
     print('checking bot API...');
     var res = http.get(Uri.parse('$url/getMe'));
     res.then((value) => print(value.body));

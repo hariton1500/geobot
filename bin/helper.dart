@@ -136,7 +136,7 @@ class Handle {
               tmp = _row[0];
             }
           }
-          print('and rows with 30 min interval is ${_db.length}');
+          print('and rows with 10 min interval is ${_db.length}');
           String data = '';
           for (var row in _db) {
             data += '${row[0].toString()},${row[2][0].toString()},${row[2][1].toString()};'; 

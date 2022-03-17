@@ -9,9 +9,10 @@ class Checks {
   void geoNotify({required Telega telega}) {
     print('Notify checks...[${DateTime.now()}]');
     int todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30).millisecondsSinceEpoch - Duration.millisecondsPerDay;
+    DateTime morning = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30);
     DateTime todayEnd = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 16, 30);
     //int now = DateTime.now().millisecondsSinceEpoch;
-    if (DateTime.now().isBefore(todayEnd) && DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(todayStart))) {
+    if (DateTime.now().isBefore(todayEnd) && DateTime.now().isAfter(morning)) {
       for (var brig in brigs) {
         print('Brigada $brig:');
         for (var id in idsByBrig[brig]!) {

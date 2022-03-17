@@ -51,7 +51,7 @@ class Handle {
             if (message.containsKey('edited_message')) {
               mess = message['edited_message'];
             }
-            //print(mess);
+            print(mess);
             parse(mess, telega);
           } else {
             print('old message... ignoring');
@@ -104,6 +104,9 @@ class Handle {
         for (var row in telega.db!) {
           print(row);
         }
+      }
+      if (mess.containsKey('chat') && mess['chat']['type'] == 'private') {
+        telega.sendMessageMenu(text: 'Меню:', chatId: mess['from']['id'], menu: [[{'text': 'show 1'}, {'text': 'show 1 1'}], [{'text': 'show 3'}, {'text': 'show 3 1'}]]);
       }
     }
   }
@@ -166,7 +169,8 @@ class Handle {
           */
           try {
             var answer = jsonDecode(res.body);
-            telega.sendMessage(text: '[${nameById[id]}](${answer['map']['url']})', chatId: from);
+            telega.sendMessage(text: nameById[id].toString(), chatId: from);
+            telega.sendMessageUrl(text: '${answer['map']['url']}', chatId: from);
             //telega.sendMessage(text: answer['map']['url'], chatId: from);
           } catch (e) {
             print(e);
@@ -174,6 +178,12 @@ class Handle {
           
           //print(out);
         }
+      }
+    } else {
+      print('show all');
+      for (var brigade in brigs) {
+        show(brigade, 1, telega, from);
+        sleep(Duration(seconds: 3));
       }
     }
   }
@@ -234,4 +244,36 @@ class Telega {
       print(e);
     }
   }
+  Future<void> sendMessageUrl({required String text, required int chatId}) async {
+    String _url = url! + 'sendMessage';
+    try {
+      http.post(Uri.parse(_url), body: {'chat_id': chatId.toString(), 'text': text, 'entities': [{'offset': 0, 'length': 46, 'type': 'url'}].toString()});
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> sendMessageMenu({required String text, required int chatId, required List<List<Map<String, String>>> menu}) async {
+    print('sending menu:');
+    print(menu.toString());
+    String _url = url! + 'sendMessage';
+    try {
+      /*
+      List<List<Map<String, String>>> inlineKeyboardButtons = [[{}]];
+      for (var row in menu) {
+        List<Map<String, String>> rowButtons = [{}];
+        for (var button in row) {
+          rowButtons.add({'text': button});
+        }
+        inlineKeyboardButtons.add(rowButtons);
+      }
+      */
+      //print(inlineKeyboardButtons.toString());
+      http.post(Uri.parse(_url), body: {'chat_id': chatId.toString(), 'text': text, 'reply_markup': {'keyboard': menu}.toString()}).then((value) => print(value.body));
+    } catch (e) {
+      print(e);
+    }
+  }
+
+
 }

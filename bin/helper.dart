@@ -42,7 +42,7 @@ class Handle {
           //print(message);
           if (telega.updateId! < message['update_id']) {
             print('--------------------New message or edited message----[${DateTime.now()}]------------------');
-            print('update_id = ${message['update_id']}');
+            //print('update_id = ${message['update_id']}');
             telega.updateId = message['update_id'];
             dynamic mess;
             if (message.containsKey('message')) {
@@ -51,7 +51,7 @@ class Handle {
             if (message.containsKey('edited_message')) {
               mess = message['edited_message'];
             }
-            print(mess);
+            //print(mess);
             parse(mess, telega);
           } else {
             print('old message... ignoring');
@@ -108,7 +108,7 @@ class Handle {
     }
   }
 
-  void show(int brig, int day, Telega telega, int from) {
+  Future<void> show(int brig, int day, Telega telega, int from) async {
     day = day.abs();
     //get unix time today 8:30
     DateTime todayMorningDT = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30);
@@ -125,35 +125,48 @@ class Handle {
         print('$id[${nameById[id]}]:');
         List oneIdAndTimeFiltered = telega.db!.where((row) => (row[1] == id && row[0] * 1000 >= startMoment && row[0] * 1000 <= startMoment + Duration.millisecondsPerDay)).toList();
         print('for $id filtered ${oneIdAndTimeFiltered.length} rows');
-        List _db = [];
-        int tmp = oneIdAndTimeFiltered[0][0];
-        _db.add(oneIdAndTimeFiltered[0]);
-        for (var i = 1; i < oneIdAndTimeFiltered.length; i++) {
-          List _row = oneIdAndTimeFiltered[i];
-          if ((_row[0] * 1000 - tmp * 1000) > Duration.millisecondsPerMinute * 30) {
-            _db.add(_row);
-            tmp = _row[0];
+        if (oneIdAndTimeFiltered.isNotEmpty) {
+          List _db = [];
+          int tmp = oneIdAndTimeFiltered[0][0];
+          _db.add(oneIdAndTimeFiltered[0]);
+          for (var i = 1; i < oneIdAndTimeFiltered.length; i++) {
+            List _row = oneIdAndTimeFiltered[i];
+            if ((_row[0] * 1000 - tmp * 1000) > Duration.millisecondsPerMinute * 30) {
+              _db.add(_row);
+              tmp = _row[0];
+            }
           }
-        }
-        out = 'https://static-maps.yandex.ru/1.x/?l=map%26pt=';
-        List coords = _db.where((row) => row[1] == id).map((e) => e[2]).toList();
-        //print(coords.length);
-        for (var coord in coords) {
-          out += '${coord[1]},${coord[0]},${coords.indexOf(coord) + 1}';
-          if (coord != coords.last) {
-            out += '~';
+          print('and rows with 30 min interval is ${_db.length}');
+          String data = '';
+          for (var row in _db) {
+            data += '${row[0].toString()},${row[2][1].toString()},${row[2][0].toString()};'; 
           }
-        }
-        //print(_url);
-        out += '%26pl=';
-        for (var coord in coords) {
-          out += '${coord[1]},${coord[0]}';
-          if (coord != coords.last) {
-            out += ',';
+          data = data.substring(0,data.length - 1);
+          print(data);
+          var res = await http.post(Uri.parse('http://evpanet.lebedinets.ru/geobot/gen.php'), body: data);
+          print(res.body);
+          /*
+          out = 'https://static-maps.yandex.ru/1.x/?l=map%26pt=';
+          List coords = _db.where((row) => row[1] == id).map((e) => e[2]).toList();
+          //print(coords.length);
+          for (var coord in coords) {
+            out += '${coord[1]},${coord[0]},${coords.indexOf(coord) + 1}';
+            if (coord != coords.last) {
+              out += '~';
+            }
           }
+          //print(_url);
+          out += '%26pl=';
+          for (var coord in coords) {
+            out += '${coord[1]},${coord[0]}';
+            if (coord != coords.last) {
+              out += ',';
+            }
+          }
+          //telega.sendMessage(text: '[${nameById[id]}]($out)', chatId: from);
+          print(out);
+          */
         }
-        //telega.sendMessage(text: '[${nameById[id]}]($out)', chatId: from);
-        print(out);
       }
     }
   }

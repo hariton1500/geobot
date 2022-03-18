@@ -21,7 +21,7 @@ class Checks {
           //print(result);
           if ((DateTime.now().millisecondsSinceEpoch - telega.lastTimeSavedData![id]! * 1000) >= Duration.millisecondsPerMinute * 30) {
             print('${nameById[id]} is not posting geo data longer then 30 min');
-            //telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!!', chatId: groupIdByBrig[brig]!);
+            telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!!', chatId: groupIdByBrig[brig]!);
             print('${nameById[id]}, включи геолокацию!!!');
           }
         }

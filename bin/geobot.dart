@@ -16,5 +16,5 @@ Future<void> main(List<String> arguments) async {
   Timer.periodic(Duration(seconds: 2), (timer) => handle.getUpdates(telega: telega));
   
   Timer(Duration(seconds: 10), () => checks.geoNotify(telega: telega));
-  Timer.periodic(Duration(minutes: 30), (timer) => checks.geoNotify(telega: telega));
+  Timer.periodic(Duration(minutes: 60), (timer) => checks.geoNotify(telega: telega));
 }

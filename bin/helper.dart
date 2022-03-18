@@ -7,32 +7,34 @@ import 'db.dart';
 class Checks {
   //[date, fromId, coords]
   void geoNotify({required Telega telega}) {
-    print('Notify checks...[${DateTime.now()}]');
-    int todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30).millisecondsSinceEpoch - Duration.millisecondsPerDay;
-    DateTime morning = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30);
-    DateTime todayEnd = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 16, 30);
-    //int now = DateTime.now().millisecondsSinceEpoch;
-    if (DateTime.now().isBefore(todayEnd) && DateTime.now().isAfter(morning)) {
+    print('Nnnnnnoooooooottttttiiiiiiffffffyyyyyyy checks...[${DateTime.now()}]');
+    DateTime periodStart = Handle().todayAt(8, 30);
+    DateTime periodEnd = Handle().todayAt(16, 30);
+    print('period of today working time is from $periodStart till $periodEnd');
+    if (!(DateTime.now().isAfter((periodStart.add(Duration(minutes: 30)))) && DateTime.now().isBefore(periodEnd))) {
+      print('out of working time.');
+    } else {
+      print('it is time to check...');
       for (var brig in brigs) {
-        print('Brigada $brig:');
         for (var id in idsByBrig[brig]!) {
-          print('$id(${nameById[id]}):');
-          //List<dynamic> result = telega.db!.where((row) => (row[0] * 1000 >= todayStart && id == row[1])).toList();
-          //print(result);
-          if ((DateTime.now().millisecondsSinceEpoch - telega.lastTimeSavedData![id]! * 1000) >= Duration.millisecondsPerMinute * 30) {
-            print('${nameById[id]} is not posting geo data longer then 30 min');
-            telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!!', chatId: groupIdByBrig[brig]!);
-            print('${nameById[id]}, включи геолокацию!!!');
+          List<dynamic> lastRowOfId = telega.db!.lastWhere((row) => row[1] == id);
+          DateTime lastTimeOfId = DateTime.fromMillisecondsSinceEpoch(lastRowOfId[0] * 1000);
+          print('last time of id $id[${nameById[id]}] was at $lastTimeOfId');
+          Duration difference = DateTime.now().difference(lastTimeOfId);
+          print('diff is ${difference.inMinutes} min');
+          if (difference.inMinutes >= 60) {
+            try {
+              print('${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут');
+            } catch (e) {
+              print(e);
+            }
           }
         }
       }
-    } else {
-      print('Out of work time.');
     }
   }
 }
 class Handle {
-
   Future<void> getUpdates({required Telega telega}) async {
     var res = await telega.getUpdate();
     if (res is Map) {
@@ -107,69 +109,59 @@ class Handle {
         }
       }
       if (mess.containsKey('chat') && mess['chat']['type'] == 'private') {
-        telega.sendMessageMenu(text: 'Меню:', chatId: mess['from']['id'], menu: [[{'text': 'show 1'}, {'text': 'show 1 1'}], [{'text': 'show 3'}, {'text': 'show 3 1'}]]);
+        //telega.sendMessageMenu(text: 'Меню:', chatId: mess['from']['id'], menu: [[{'text': 'show 1'}, {'text': 'show 1 1'}], [{'text': 'show 3'}, {'text': 'show 3 1'}]]);
       }
     }
   }
 
-  Future<void> show(int brig, int day, Telega telega, int from) async {
-    day = day.abs();
-    //get unix time today 8:30
-    DateTime todayMorningDT = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30);
-    int todayMorningUnix = todayMorningDT.millisecondsSinceEpoch;
-    int startMoment = todayMorningUnix - Duration.millisecondsPerDay * day;
-    print(startMoment);
-    print(DateTime.fromMillisecondsSinceEpoch(startMoment));
-    if (brig > 0 && idsByBrig.containsKey(brig)) {
-      //var result = telega.db!.where((raw) => (raw[0] * 1000 >= startMoment && idsByBrig[brig]!.contains(raw[1])));
-      print('results:');
-      //print(result);
-      String out = '';
-      for (var id in idsByBrig[brig]!) {
-        print('$id[${nameById[id]}]:');
-        List oneIdAndTimeFiltered = telega.db!.where((row) => (row[1] == id && row[0] * 1000 >= startMoment && row[0] * 1000 <= startMoment + Duration.millisecondsPerDay)).toList();
-        print('for $id filtered ${oneIdAndTimeFiltered.length} rows');
-        if (oneIdAndTimeFiltered.isNotEmpty) {
-          List _db = [];
-          int tmp = oneIdAndTimeFiltered[0][0];
-          _db.add(oneIdAndTimeFiltered[0]);
-          for (var i = 1; i < oneIdAndTimeFiltered.length; i++) {
-            List _row = oneIdAndTimeFiltered[i];
-            if ((_row[0] * 1000 - tmp * 1000) > Duration.millisecondsPerMinute * 10) {
-              _db.add(_row);
-              tmp = _row[0];
-            }
+  DateTime todayAt(int h, int m) {
+    if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+      return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, h, m);
+    } else {
+      return DateTime.now();
+    }
+    
+  }
+  Future<void> show(int brig, int pastDays, Telega telega, int from) async {
+    print('sssssssssssssssssssshhhhhhhhhhhhhhhhhhooooooooooooooooowwwwwwwwwwwwwwwwww');
+    pastDays = pastDays.abs();
+    print('check parameters...');
+    if (brigs.contains(brig) && pastDays <= 7) {
+      print('ok. continue.');
+      print('show geo moves for brigade $brig for period of past days $pastDays');
+      DateTime periodStart = todayAt(8, 30).subtract(Duration(days: pastDays));
+      DateTime periodEnd = todayAt(16, 30).subtract(Duration(days: pastDays));
+      print('period from $periodStart to $periodEnd');
+      if (brig > 0) {
+        try {
+          print('selecting for period:');
+          List<List<dynamic>> selected = telega.db!.where((row) => DateTime.fromMillisecondsSinceEpoch(row[0] * 1000).isAfter(periodStart) && DateTime.fromMillisecondsSinceEpoch(row[0] * 1000).isBefore(periodEnd)).toList();
+          print('from ${telega.db!.length} rows selected ${selected.length} rows.');
+          print('selecting ids:');
+          selected.removeWhere((row) => !idsByBrig[brig]!.contains(row[1]));
+          print('${selected.length} selected.');
+          List<Map<String, dynamic>> requestData = [];
+          for (var id in idsByBrig[brig]!) {
+            requestData.add({'name': '${nameById[id]}', 'data': selected.where((row) => row[1] == id).map<List>((e) => [e[0], e[2][0], e[2][1]]).toList()});
           }
-          print('and rows with 10 min interval is ${_db.length}');
-          String data = '';
-          for (var row in _db) {
-            data += '${row[0].toString()},${row[2][0].toString()},${row[2][1].toString()};'; 
-          }
-          data = data.substring(0,data.length - 1);
-          print(data);
-          var res = await http.post(Uri.parse('http://evpanet.lebedinets.ru/geobot/gen.php'), body: {'data': data});
-          print(res.body);
+          //print(jsonEncode(requestData));
           try {
+            var res = await http.post(Uri.parse('http://evpanet.lebedinets.ru/geobot/gen.php'), body: jsonEncode(requestData));
+            print(res.body);
             var answer = jsonDecode(res.body);
-            telega.sendMessage(text: nameById[id].toString(), chatId: from);
             telega.sendMessageUrl(text: '${answer['map']['url']}', chatId: from);
-            //sleep(Duration(seconds: 5));
-            //telega.sendMessage(text: answer['map']['url'], chatId: from);
           } catch (e) {
             print(e);
           }
-          
-          //print(out);
+        } catch (e) {
+          print(e);
         }
       }
     } else {
-      print('show all');
-      for (var brigade in brigs) {
-        show(brigade, 1, telega, from);
-        sleep(Duration(seconds: 5));
-      }
+      print('not correct. ignoring.');
     }
   }
+
 }
 
 class Telega {
@@ -203,8 +195,12 @@ class Telega {
       print('[$id] ${nameById[id]}: ${DateTime.fromMillisecondsSinceEpoch(lastTimeSavedData![id]! * 1000)}');
     }
     print('checking bot API...');
-    var res = http.get(Uri.parse('$url/getMe'));
-    res.then((value) => print(value.body));
+    try {
+      var res = http.get(Uri.parse(url! + 'getMe'));
+      res.then((value) => print('my name is ${jsonDecode(value.body)['result']['first_name']}'));
+    } catch (e) {
+      print(e);
+    }
   }
   Future<dynamic> getUpdate() async {
     String _url = url! + 'getUpdates';

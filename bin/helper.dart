@@ -149,29 +149,11 @@ class Handle {
           print(data);
           var res = await http.post(Uri.parse('http://evpanet.lebedinets.ru/geobot/gen.php'), body: {'data': data});
           print(res.body);
-          /*
-          out = 'https://static-maps.yandex.ru/1.x/?l=map%26pt=';
-          List coords = _db.where((row) => row[1] == id).map((e) => e[2]).toList();
-          //print(coords.length);
-          for (var coord in coords) {
-            out += '${coord[1]},${coord[0]},${coords.indexOf(coord) + 1}';
-            if (coord != coords.last) {
-              out += '~';
-            }
-          }
-          //print(_url);
-          out += '%26pl=';
-          for (var coord in coords) {
-            out += '${coord[1]},${coord[0]}';
-            if (coord != coords.last) {
-              out += ',';
-            }
-          }
-          */
           try {
             var answer = jsonDecode(res.body);
             telega.sendMessage(text: nameById[id].toString(), chatId: from);
             telega.sendMessageUrl(text: '${answer['map']['url']}', chatId: from);
+            //sleep(Duration(seconds: 5));
             //telega.sendMessage(text: answer['map']['url'], chatId: from);
           } catch (e) {
             print(e);
@@ -184,7 +166,7 @@ class Handle {
       print('show all');
       for (var brigade in brigs) {
         show(brigade, 1, telega, from);
-        sleep(Duration(seconds: 3));
+        sleep(Duration(seconds: 5));
       }
     }
   }

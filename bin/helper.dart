@@ -11,7 +11,7 @@ class Checks {
     DateTime periodStart = Handle().todayAt(8, 30);
     DateTime periodEnd = Handle().todayAt(16, 30);
     print('period of today working time is from $periodStart till $periodEnd');
-    if (!(DateTime.now().isAfter((periodStart.add(Duration(minutes: 30)))) && DateTime.now().isBefore(periodEnd))) {
+    if (!(DateTime.now().isAfter((periodStart.add(Duration(minutes: 20)))) && DateTime.now().isBefore(periodEnd))) {
       print('out of working time.');
     } else {
       print('it is time to check...');
@@ -25,6 +25,7 @@ class Checks {
           if (difference.inMinutes >= 60) {
             try {
               print('${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут');
+              telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут', chatId: id);
             } catch (e) {
               print(e);
             }

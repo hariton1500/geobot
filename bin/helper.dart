@@ -22,13 +22,13 @@ class Checks {
           print('last time of id $id[${nameById[id]}] was at $lastTimeOfId');
           Duration difference = DateTime.now().difference(lastTimeOfId);
           print('diff is ${difference.inMinutes} min');
-          if (difference.inMinutes >= 60) {
-            try {
-              print('${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут');
-              telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут', chatId: id);
-            } catch (e) {
-              print(e);
+          try {
+            if (difference.inMinutes >= 60 && telega.workingIds!.contains(id)) {
+                print('${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут');
+                telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут', chatId: id);
             }
+          } catch (e) {
+            print(e);
           }
         }
       }
@@ -173,25 +173,29 @@ class Telega {
   String? text;
   List<List>? db;
   Map<int, int>? lastTimeSavedData;
+  List<int>? workingIds;
 
   Telega({required String tkn}) {
     url = 'https://api.telegram.org/bot$tkn/';
     updateId = 0;
     db = [];
     lastTimeSavedData = {};
-    File file = File('db.txt');
-    if (!file.existsSync()) {
-      file.createSync();
+    try {
+      File file = File('db.txt');
+      if (!file.existsSync()) {
+        file.createSync();
+      }
+      int count = 0;
+      for (var line in file.readAsLinesSync()) {
+        List<String> separated = line.split(' ');
+        db!.add([int.parse(separated[0]), int.parse(separated[1]), [double.parse(separated[2]), double.parse(separated[3])]]);
+        lastTimeSavedData![db!.last[1]] = db!.last[0];
+        count++;
+      }
+      print('read $count rows from DB file');
+    } catch (e) {
+      print(e);
     }
-    //file.openRead();
-    int count = 0;
-    for (var line in file.readAsLinesSync()) {
-      List<String> separated = line.split(' ');
-      db!.add([int.parse(separated[0]), int.parse(separated[1]), [double.parse(separated[2]), double.parse(separated[3])]]);
-      lastTimeSavedData![db!.last[1]] = db!.last[0];
-      count++;
-    }
-    print('read $count rows from DB file');
     print('Last saved data:');
     for (var id in nameById.keys) {
       print('[$id] ${nameById[id]}: ${DateTime.fromMillisecondsSinceEpoch(lastTimeSavedData![id]! * 1000)}');
@@ -205,6 +209,20 @@ class Telega {
       exit(0);
     }
   }
+
+  void cleanOldData({required int beforeDays}) {
+    try {
+      db!.removeWhere((row) => DateTime.fromMillisecondsSinceEpoch(row[0] * 1000).isBefore(DateTime.now().subtract(Duration(days: beforeDays))));
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void getWorkings() {
+    var res = http.get(Uri.parse('http://billing.evpanet.com/api/active_workers.php'));
+    res.then((answer) => workingIds = jsonDecode(answer.body));
+  }
+
   Future<dynamic> getUpdate() async {
     String _url = url! + 'getUpdates';
     if (updateId != null) {

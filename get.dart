@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 void main(List<String> args) {
-  var res = http.get(Uri.parse('http://billing.evpanet.com/api/active_workers.php'));
+  var res = http.get(Uri.parse(''));
   res.then((answer) {
     List<int>? workingIds;
     var _workingIds = jsonDecode(answer.body);
@@ -10,6 +10,6 @@ void main(List<String> args) {
     print(workingIds);
     print(workingIds.runtimeType);
     print(workingIds![0].runtimeType);
-    
+
   });
 }

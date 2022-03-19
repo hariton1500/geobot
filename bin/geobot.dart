@@ -36,12 +36,8 @@ Future<void> main(List<String> arguments) async {
     } catch (e) {
       print(e);
     }
-    try {
-      if (checkTimeAt(h: 8, m: 1)) {
-        telega.getWorkings();
-      }
-    } catch (e) {
-      print(e);
+    if (checkTimeAt(h: 8, m: 1)) {
+      telega.getWorkings();
     }
   });
 }

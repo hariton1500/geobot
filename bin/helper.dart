@@ -219,8 +219,17 @@ class Telega {
   }
 
   void getWorkings() {
-    var res = http.get(Uri.parse('http://billing.evpanet.com/api/active_workers.php'));
-    res.then((answer) => workingIds = jsonDecode(answer.body));
+    try {
+      var res = http.get(Uri.parse('http://billing.evpanet.com/api/active_workers.php'));
+      res.then((answer) {
+        var _unknown = jsonDecode(answer.body);
+        if (_unknown is List) {
+          workingIds = _unknown.map((e) => int.parse(e)).toList();
+        }
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<dynamic> getUpdate() async {

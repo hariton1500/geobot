@@ -7,4 +7,4 @@ build/
 .vscode/
 db.txt
 tkn.txt
-get.dart
+*.dart

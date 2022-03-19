@@ -55,7 +55,7 @@ class Handle {
             if (message.containsKey('edited_message')) {
               mess = message['edited_message'];
             }
-            print(mess);
+            //print(mess);
             parse(mess, telega);
           } else {
             print('old message... ignoring');
@@ -91,6 +91,7 @@ class Handle {
       }
     }
     if (mess is Map && mess.containsKey('text')) {
+      print(mess);
       if (mess['text'].toString().startsWith('show')) {
         try {
           List command = mess['text'].toString().split(' ');
@@ -201,6 +202,7 @@ class Telega {
       res.then((value) => print('my name is ${jsonDecode(value.body)['result']['first_name']}'));
     } catch (e) {
       print(e);
+      exit(0);
     }
   }
   Future<dynamic> getUpdate() async {

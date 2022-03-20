@@ -208,6 +208,11 @@ class Telega {
       print(e);
       exit(0);
     }
+    try {
+      getWorkings();
+    } catch (e) {
+      print(e);
+    }
   }
 
   void cleanOldData({required int beforeDays}) {

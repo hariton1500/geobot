@@ -28,9 +28,9 @@ Future<void> main(List<String> arguments) async {
     //this periodic is for creating reports
     try {
       for (var brig in brigs) {
-        if (checkTimeAt(h: 8, m: 1 + brig)) {
-          telega.sendMessage(text: 'Отчет по вчерашнему движению бригады № $brig', chatId: groupIdByBrig[0]!);
-          handle.show(brig, 1, telega, groupIdByBrig[0]!);
+        if (checkTimeAt(h: 8, m: 4 + brig)) {
+          telega.sendMessage(text: 'Отчет по вчерашнему движению бригады № $brig', chatId: groupIdByBrig[brig]!);
+          handle.show(brig, 1, telega, groupIdByBrig[brig]!);
         }
       }
     } catch (e) {

@@ -36,6 +36,7 @@ class Checks {
   }
 }
 class Handle {
+  static const storePeriodGeo = 7;
   Future<void> getUpdates({required Telega telega}) async {
     var res = await telega.getUpdate();
     if (res is Map) {
@@ -80,7 +81,7 @@ class Handle {
       if (mess.containsKey('edit_date')) {
         date = mess['edit_date'];
       }
-      if (date! * 1000 - telega.lastTimeSavedData![fromId]! * 1000 >= Duration.millisecondsPerMinute * 15) {
+      if (date! * 1000 - telega.lastTimeSavedData![fromId]! * 1000 >= Duration.millisecondsPerMinute * storePeriodGeo) {
         telega.db!.add([date, fromId, coords]);
         File file = File('db.txt');
         file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);
@@ -225,11 +226,13 @@ class Telega {
 
   void getWorkings() {
     try {
+      print('getting workings...');
       var res = http.get(Uri.parse('http://billing.evpanet.com/api/active_workers.php'));
       res.then((answer) {
         var _unknown = jsonDecode(answer.body);
         if (_unknown is List) {
           workingIds = _unknown.map((e) => int.parse(e)).toList();
+          print(workingIds!.map((id) => {id: nameById[id]}).toList());
         }
       });
     } catch (e) {

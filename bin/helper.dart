@@ -25,7 +25,7 @@ class Checks {
           try {
             if (difference.inMinutes >= 60 && telega.workingIds!.contains(id)) {
                 print('${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут');
-                telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут', chatId: id);
+                telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут', chatId: groupIdByBrig[brig]!);
             }
           } catch (e) {
             print(e);

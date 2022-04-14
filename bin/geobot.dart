@@ -22,7 +22,7 @@ Future<void> main(List<String> arguments) async {
   }
   Timer.periodic(Duration(seconds: 2), (timer) => handle.getUpdates(telega: telega));
   Timer.periodic(Duration(days: 1), (timer) => telega.cleanOldData(beforeDays: keepInMemoryDays));
-  Timer(Duration(seconds: 10), () => checks.geoNotify(telega: telega));
+  Timer(Duration(seconds: 600), () => checks.geoNotify(telega: telega));
   Timer.periodic(Duration(minutes: 60), (timer) => checks.geoNotify(telega: telega));
   Timer.periodic(Duration(minutes: 1), (timer) {
     //this periodic is for creating reports

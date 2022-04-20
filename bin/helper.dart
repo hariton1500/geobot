@@ -46,7 +46,7 @@ class Handle {
         for (var message in messages) {
           //print(message);
           if (telega.updateId! < message['update_id']) {
-            print('--------------------New message or edited message----[${DateTime.now()}]------------------');
+            print('[${DateTime.now()}]---New message or edited message---');
             //print('update_id = ${message['update_id']}');
             telega.updateId = message['update_id'];
             dynamic mess;
@@ -57,7 +57,7 @@ class Handle {
               mess = message['edited_message'];
             }
             //print(mess);
-            parse(mess, telega);
+            try {parse(mess, telega);} catch (e) {print(e);}
           } else {
             print('old message... ignoring');
             telega.updateId = message['update_id'];
@@ -70,7 +70,7 @@ class Handle {
   }
 
   void parse(dynamic mess, Telega telega) {
-    print('start parsing');
+    //print('start parsing');
     if (mess is Map && mess.containsKey('location')) {
       List<double> coords = [mess['location']['latitude'], mess['location']['longitude']];
       int fromId = mess['from']['id'];
@@ -86,9 +86,9 @@ class Handle {
         File file = File('db.txt');
         file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);
         telega.lastTimeSavedData![fromId] = date;
-        print('saved to db');
+        print('From $fromId[${nameById[fromId]}] saving to db');
       } else {
-        print((date * 1000 - telega.lastTimeSavedData![fromId]! * 1000) / 1000 / 60);
+        print('From $fromId[${nameById[fromId]}] past only ${(date * 1000 - telega.lastTimeSavedData![fromId]! * 1000) / 1000 ~/ 60} minutes');
       }
     }
     if (mess is Map && mess.containsKey('text')) {

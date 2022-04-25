@@ -7,31 +7,31 @@ import 'db.dart';
 class Checks {
   //[date, fromId, coords]
   void geoNotify({required Telega telega}) {
-    print('Nnnnnnoooooooottttttiiiiiiffffffyyyyyyy checks...[${DateTime.now()}]');
-    DateTime periodStart = Handle().todayAt(8, 30);
-    DateTime periodEnd = Handle().todayAt(16, 30);
-    print('period of today working time is from $periodStart till $periodEnd');
-    if (!(DateTime.now().isAfter((periodStart.add(Duration(minutes: 20)))) && DateTime.now().isBefore(periodEnd))) {
-      print('out of working time.');
-    } else {
-      print('it is time to check...');
-      for (var brig in brigs) {
-        for (var id in idsByBrig[brig]!) {
-          List<dynamic> lastRowOfId = telega.db!.lastWhere((row) => row[1] == id);
-          DateTime lastTimeOfId = DateTime.fromMillisecondsSinceEpoch(lastRowOfId[0] * 1000);
-          print('last time of id $id[${nameById[id]}] was at $lastTimeOfId');
-          Duration difference = DateTime.now().difference(lastTimeOfId);
-          print('diff is ${difference.inMinutes} min');
-          try {
+    try {
+      print('Nnnnnnoooooooottttttiiiiiiffffffyyyyyyy checks...[${DateTime.now()}]');
+      DateTime periodStart = Handle().todayAt(8, 30);
+      DateTime periodEnd = Handle().todayAt(16, 30);
+      print('period of today working time is from $periodStart till $periodEnd');
+      if (!(DateTime.now().isAfter((periodStart.add(Duration(minutes: 20)))) && DateTime.now().isBefore(periodEnd))) {
+        print('out of working time.');
+      } else {
+        print('it is time to check...');
+        for (var brig in brigs) {
+          for (var id in idsByBrig[brig]!) {
+            List<dynamic> lastRowOfId = telega.db!.lastWhere((row) => row[1] == id);
+            DateTime lastTimeOfId = DateTime.fromMillisecondsSinceEpoch(lastRowOfId[0] * 1000);
+            print('last time of id $id[${nameById[id]}] was at $lastTimeOfId');
+            Duration difference = DateTime.now().difference(lastTimeOfId);
+            print('diff is ${difference.inMinutes} min');
             if (difference.inMinutes >= 60 && telega.workingIds!.contains(id)) {
                 print('${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут');
                 telega.sendMessage(text: '${nameById[id]}, включи геолокацию!!! Данные не поступают ${difference.inMinutes} минут', chatId: groupIdByBrig[brig]!);
             }
-          } catch (e) {
-            print(e);
           }
         }
       }
+    } catch (e) {
+      print(e);
     }
   }
 }
@@ -199,7 +199,7 @@ class Telega {
     }
     print('Last saved data:');
     for (var id in nameById.keys) {
-      print('[$id] ${nameById[id]}: ${DateTime.fromMillisecondsSinceEpoch(lastTimeSavedData![id]! * 1000)}');
+      print('[$id] ${nameById[id]}: ${DateTime.fromMillisecondsSinceEpoch(lastTimeSavedData![id]?? 0 * 1000)}');
     }
     print('checking bot API...');
     try {

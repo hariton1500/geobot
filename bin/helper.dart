@@ -86,7 +86,8 @@ class Handle {
         File file = File('db.txt');
         file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);
         try {
-          http.post(Uri.parse('https://billing.evpanet.com/api/geobot.php'), body: jsonEncode({'date': date, 'id': fromId, 'location': coords}));
+          print('copying to geobot.php: ${{'date': date.toString(), 'id': fromId.toString(), 'location': coords.toString()}}');
+          http.post(Uri.parse('https://billing.evpanet.com/api/geobot.php'), body: {'date': date.toString(), 'id': fromId.toString(), 'location': coords.toString()});
         } catch (e) {
           print(e);
         }
@@ -209,7 +210,7 @@ class Telega {
     print('checking bot API...');
     try {
       var res = http.get(Uri.parse(url! + 'getMe'));
-      res.then((value) => print('my name is ${jsonDecode(value.body)['result']}'));//['first_name']}'));
+      res.then((value) => print('my name is ${jsonDecode(value.body)['result']['first_name']}'));
     } catch (e) {
       print(e);
       exit(0);

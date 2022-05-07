@@ -87,7 +87,7 @@ class Handle {
         file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);
         try {
           print('copying to geobot.php: ${{'date': date.toString(), 'id': fromId.toString(), 'location': coords.toString()}}');
-          http.post(Uri.parse('https://billing.evpanet.com/api/geobot.php'), body: {'date': date.toString(), 'id': fromId.toString(), 'location': coords.toString()});
+          http.post(Uri.parse('https://billing.evpanet.com/api/geobot.php'), body: {'date': date.toString(), 'id': fromId.toString(), 'location': coords.toString()}).then((value) => print(value.statusCode));
         } catch (e) {
           print(e);
         }

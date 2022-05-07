@@ -209,7 +209,7 @@ class Telega {
     print('checking bot API...');
     try {
       var res = http.get(Uri.parse(url! + 'getMe'));
-      res.then((value) => print('my name is ${jsonDecode(value.body)['result']['first_name']}'));
+      res.then((value) => print('my name is ${jsonDecode(value.body)['result']}'));//['first_name']}'));
     } catch (e) {
       print(e);
       exit(0);

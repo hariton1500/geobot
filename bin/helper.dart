@@ -70,7 +70,7 @@ class Handle {
   }
 
   void parse(dynamic mess, Telega telega) {
-    //print('start parsing');
+    print('parse:');
     if (mess is Map && mess.containsKey('location')) {
       List<double> coords = [mess['location']['latitude'], mess['location']['longitude']];
       int fromId = mess['from']['id'];

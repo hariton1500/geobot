@@ -101,6 +101,7 @@ class Handle {
     if (mess is Map && mess.containsKey('text')) {
       print(mess);
       if (mess['text'].toString().startsWith('show')) {
+        //10002
         try {
           List command = mess['text'].toString().split(' ');
           int brig = 0, day = 0;
@@ -109,7 +110,7 @@ class Handle {
           show(brig, day, telega, mess['from']['id']);
           
         } catch (e) {
-          print(e);
+          print('10002:' + e.toString());
         }
       }
       if (mess['text'].toString().startsWith('db list')) {

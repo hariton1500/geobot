@@ -57,7 +57,7 @@ class Handle {
               mess = message['edited_message'];
             }
             //print(mess);
-            try {parse(mess, telega);} catch (e) {print(e);}
+            parse(mess, telega);
           } else {
             print('old message... ignoring');
             telega.updateId = message['update_id'];

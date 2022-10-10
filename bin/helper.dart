@@ -81,7 +81,7 @@ class Handle {
       if (mess.containsKey('edit_date')) {
         date = mess['edit_date'];
       }
-      if (date * 1000 - (telega.lastTimeSavedData ?? {fromId : 0})[fromId]! * 1000 >= Duration.millisecondsPerMinute * storePeriodGeo) {
+      if (date * 1000 - ((telega.lastTimeSavedData ?? {fromId : 0})[fromId] ?? 0) * 1000 >= Duration.millisecondsPerMinute * storePeriodGeo) {
         telega.db!.add([date, fromId, coords]);
         File file = File('db.txt');
         file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);

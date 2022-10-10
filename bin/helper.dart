@@ -85,11 +85,12 @@ class Handle {
         telega.db!.add([date, fromId, coords]);
         File file = File('db.txt');
         file.writeAsStringSync('$date $fromId ${coords[0]} ${coords[1]}\n', mode: FileMode.append);
+        //10001
         try {
           print('copying to geobot.php: ${{'date': date.toString(), 'id': fromId.toString(), 'location': coords.toString()}}');
           http.post(Uri.parse('https://billing.evpanet.com/api/geobot.php'), body: {'date': date.toString(), 'id': fromId.toString(), 'location': coords.toString()}).then((value) => print(value.statusCode));
         } catch (e) {
-          print(e);
+          print('10001' + e.toString());
         }
         telega.lastTimeSavedData![fromId] = date;
         print('From $fromId[${nameById[fromId]}] saving to db');
